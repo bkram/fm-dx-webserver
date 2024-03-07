@@ -399,6 +399,71 @@ app.get('/api', (req, res) => {
   res.json(data);
 });
 
+app.post('/api', (request, res) => {
+  const { command } = request.body;
+  const clientIp = request.ip;
+
+  logDebug('API command received from \x1b[90m' + clientIp + '\x1b[0m:', command.toString());
+
+  if (command.startsWith('T')) {
+    let tuneFreq = Number(command.slice(1)) / 1000;
+
+    if (serverConfig.webserver.tuningLimit === true && (tuneFreq < serverConfig.webserver.tuningLowerLimit || tuneFreq > serverConfig.webserver.tuningUpperLimit)) {
+      res.json({ message: 'Received command', command });
+      return;
+    }
+  }
+
+  if ((serverConfig.publicTuner === true) || (request.session && request.session.isTuneAuthenticated === true)) {
+
+    if (serverConfig.lockToAdmin === true) {
+      if (request.session && request.session.isAdminAuthenticated === true) {
+        client.write(command + "\n");
+        res.json({ message: 'Received command', command });
+      } else {
+        return;
+      }
+    } else {
+      client.write(command + "\n");
+      res.json({ message: 'Received command', command });
+
+    }
+  }
+
+});
+
+app.post('/api', (request, res) => {
+  const { command } = request.body;
+  const clientIp = request.ip;
+
+  logDebug('API command received from \x1b[90m' + clientIp + '\x1b[0m:', command.toString());
+
+  if (command.startsWith('T')) {
+    let tuneFreq = Number(command.slice(1)) / 1000;
+
+    if (serverConfig.webserver.tuningLimit === true && (tuneFreq < serverConfig.webserver.tuningLowerLimit || tuneFreq > serverConfig.webserver.tuningUpperLimit)) {
+      res.json({ message: 'Received command', command });
+      return;
+    }
+  }
+
+  if ((serverConfig.publicTuner === true) || (request.session && request.session.isTuneAuthenticated === true)) {
+
+    if (serverConfig.lockToAdmin === true) {
+      if (request.session && request.session.isAdminAuthenticated === true) {
+        client.write(command + "\n");
+        res.json({ message: 'Received command', command });
+      } else {
+        return;
+      }
+    } else {
+      client.write(command + "\n");
+      res.json({ message: 'Received command', command });
+
+    }
+  }
+});
+
 function formatUptime(uptimeInSeconds) {
     const secondsInMinute = 60;
     const secondsInHour = secondsInMinute * 60;
