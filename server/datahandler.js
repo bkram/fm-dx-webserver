@@ -18,7 +18,7 @@ if (platform === 'win32') {
   shared_Library=path.join(__dirname, "libraries", "librdsparser_" + cpuArchitecture + ".so"); 
 } else if (platform === 'darwin') {
   unicode_type = 'int32_t';
-  shared_Library=path.join(__dirname, "libraries", "librdsparser_" + cpuArchitecture + ".dylib");
+  shared_Library=path.join(__dirname, "libraries", "librdsparser" + ".dylib");
 } 
 
 const lib = koffi.load(shared_Library);
