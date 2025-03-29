@@ -3,51 +3,53 @@ const ffmpeg = require('ffmpeg-static');
 const { configName, serverConfig, configUpdate, configSave, configExists } = require('../server_config');
 const { logDebug, logError, logInfo, logWarn, logFfmpeg } = require('../console');
 
-function enableAudioStream() {
-    serverConfig.webserver.webserverPort = Number(serverConfig.webserver.webserverPort);
-    let command = '';
-    let startupSuccess = false;
+function buildCommand() {
+    // Common audio options for FFmpeg
+    const baseOptions = {
+        flags: '-fflags +nobuffer+flush_packets -flags low_delay -rtbufsize 6192 -probesize 32',
+        codec: `-acodec pcm_s16le -ar 48000 -ac ${serverConfig.audio.audioChannels}`,
+        output: '-f s16le -fflags +nobuffer+flush_packets -packetsize 384 -flush_packets 1 -bufsize 960'
+    };
 
     if (process.platform === 'win32') {
-        // Windows
+        // Windows: using dshow
         logInfo('[Audio Stream] Platform: Windows (win32). Using "dshow" input.');
         const ffmpegCommand = `"${ffmpeg.replace(/\\/g, '\\\\')}"`;
-        const flags = `-fflags +nobuffer+flush_packets -flags low_delay -rtbufsize 6192 -probesize 32`;
-        const codec = `-acodec pcm_s16le -ar 48000 -ac ${serverConfig.audio.audioChannels}`;
-        const output = `-f s16le -fflags +nobuffer+flush_packets -packetsize 384 -flush_packets 1 -bufsize 960`;
-        command = `${ffmpegCommand} ${flags} -f dshow -audio_buffer_size 200 -i audio="${serverConfig.audio.audioDevice}" ` +
-            `${codec} ${output} pipe:1 | node server/stream/3las.server.js -port ` +
+        return `${ffmpegCommand} ${baseOptions.flags} -f dshow -audio_buffer_size 200 -i audio="${serverConfig.audio.audioDevice}" ` +
+            `${baseOptions.codec} ${baseOptions.output} pipe:1 | node server/stream/3las.server.js -port ` +
             `${serverConfig.webserver.webserverPort + 10} -samplerate 48000 -channels ${serverConfig.audio.audioChannels}`;
     } else if (process.platform === 'darwin') {
-        // macOS
-        // Use SoX's "rec" with the coreaudio driver.
-        // Install `sox` with brew.
-        // It would appear assigning a specific audio device does not work with Sox
-        // Set up the correct audio device in the System preferences and
-        // Use the Audio MIDI Setup app to select the correct input for your card
-        logInfo('[Audio Stream] Platform: macOS (darwin) using "coreaudio" with default audio device.');
-        const recCommand = `rec -t coreaudio -b 32 -r 48000 -c 2 -t raw -b 16 -r 48000 -c ${serverConfig.audio.audioChannels} -`;
-        command = `${recCommand} | node server/stream/3las.server.js -port ${serverConfig.webserver.webserverPort + 10}` +
+        // macOS: using SoX's rec with coreaudio
+        logInfo('[Audio Stream] Platform: macOS (darwin) using "coreaudio" with the default audio device.');
+        const recCommand = `rec -t coreaudio -b 32 -r 48000 -c ${serverConfig.audio.audioChannels} -t raw -b 16 -r 48000 -c ${serverConfig.audio.audioChannels} -`;
+        return `${recCommand} | node server/stream/3las.server.js -port ${serverConfig.webserver.webserverPort + 10}` +
             ` -samplerate 48000 -channels ${serverConfig.audio.audioChannels}`;
     } else {
-        // Linux
+        // Linux: using alsa
         logInfo('[Audio Stream] Platform: Linux. Using "alsa" input.');
-        const flags = `-fflags +nobuffer+flush_packets -flags low_delay -rtbufsize 6192 -probesize 32`;
-        const codec = `-acodec pcm_s16le -ar 48000 -ac ${serverConfig.audio.audioChannels}`;
-        const output = `-f s16le -fflags +nobuffer+flush_packets -packetsize 384 -flush_packets 1 -bufsize 960`;
-        command = `ffmpeg ${flags} -f alsa -i "${serverConfig.audio.softwareMode && serverConfig.audio.softwareMode === true ? 'plug' : ''}${serverConfig.audio.audioDevice}" ` +
-            `${codec} ${output} pipe:1 | node server/stream/3las.server.js -port ` +
+        // If softwareMode is enabled, prefix the device with 'plug'
+        const audioDevicePrefix = (serverConfig.audio.softwareMode && serverConfig.audio.softwareMode === true) ? 'plug' : '';
+        return `ffmpeg ${baseOptions.flags} -f alsa -i "${audioDevicePrefix}${serverConfig.audio.audioDevice}" ` +
+            `${baseOptions.codec} ${baseOptions.output} pipe:1 | node server/stream/3las.server.js -port ` +
             `${serverConfig.webserver.webserverPort + 10} -samplerate 48000 -channels ${serverConfig.audio.audioChannels}`;
     }
+}
 
-    if ( process.platform != 'darwin') {
+function enableAudioStream() {
+    // Ensure the webserver port is a number.
+    serverConfig.webserver.webserverPort = Number(serverConfig.webserver.webserverPort);
+    let startupSuccess = false;
+    const command = buildCommand();
+
+    // Only log device details on non-macOS platforms.
+    if (process.platform !== 'darwin') {
         logInfo(`Trying to start audio stream on device: \x1b[35m${serverConfig.audio.audioDevice}\x1b[0m`);
     }
 
     logInfo(`Using internal audio network port: ${serverConfig.webserver.webserverPort + 10}`);
     logDebug(`[Audio Stream] Full command:\n${command}`);
 
-    // Only start the stream if an audio device is configured.
+    // Start the stream only if a valid audio device is configured.
     if (serverConfig.audio.audioDevice && serverConfig.audio.audioDevice.length > 2) {
         const childProcess = spawn(command, { shell: true });
 
