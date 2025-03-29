@@ -12,7 +12,7 @@ function buildCommand() {
     };
 
     if (process.platform === 'win32') {
-        // Windows: using dshow
+        // Windows: ffmpeg using dshow
         logInfo('[Audio Stream] Platform: Windows (win32). Using "dshow" input.');
         const ffmpegCommand = `"${ffmpeg.replace(/\\/g, '\\\\')}"`;
         return `${ffmpegCommand} ${baseOptions.flags} -f dshow -audio_buffer_size 200 -i audio="${serverConfig.audio.audioDevice}" ` +
@@ -25,7 +25,7 @@ function buildCommand() {
         return `${recCommand} | node server/stream/3las.server.js -port ${serverConfig.webserver.webserverPort + 10}` +
             ` -samplerate 48000 -channels ${serverConfig.audio.audioChannels}`;
     } else {
-        // Linux: using alsa
+        // Linux: ffmpeg using alsa
         logInfo('[Audio Stream] Platform: Linux. Using "alsa" input.');
         // If softwareMode is enabled, prefix the device with 'plug'
         const audioDevicePrefix = (serverConfig.audio.softwareMode && serverConfig.audio.softwareMode === true) ? 'plug' : '';
