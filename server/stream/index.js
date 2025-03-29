@@ -25,7 +25,7 @@ function enableAudioStream() {
         // It would appear assigning a specific audio device does not work with Sox
         // Set up the correct audio device in the System preferences and
         // Use the Audio MIDI Setup app to select the correct input for your card
-        logInfo('[Audio Stream] Platform: macOS (darwin). Using "rec" (SoX) input from default audio device.');
+        logInfo('[Audio Stream] Platform: macOS (darwin) using "coreaudio" with default audio device.');
         const recCommand = `rec -t coreaudio -b 32 -r 48000 -c 2 -t raw -b 16 -r 48000 -c ${serverConfig.audio.audioChannels} -`;
         command = `${recCommand} | node server/stream/3las.server.js -port ${serverConfig.webserver.webserverPort + 10}` +
             ` -samplerate 48000 -channels ${serverConfig.audio.audioChannels}`;
@@ -43,6 +43,7 @@ function enableAudioStream() {
     if ( process.platform != 'darwin') {
         logInfo(`Trying to start audio stream on device: \x1b[35m${serverConfig.audio.audioDevice}\x1b[0m`);
     }
+
     logInfo(`Using internal audio network port: ${serverConfig.webserver.webserverPort + 10}`);
     logDebug(`[Audio Stream] Full command:\n${command}`);
 
