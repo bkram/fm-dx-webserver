@@ -25,13 +25,13 @@ function buildCommand() {
         return `${recCommand} | node server/stream/3las.server.js -port ${serverConfig.webserver.webserverPort + 10}` +
             ` -samplerate 48000 -channels ${serverConfig.audio.audioChannels}`;
     } else {
-        // Linux: ffmpeg using alsa
-        logInfo('[Audio Stream] Platform: Linux. Using "alsa" input.');
+        // Linux: use alsa with arecord
         // If softwareMode is enabled, prefix the device with 'plug'
         const audioDevicePrefix = (serverConfig.audio.softwareMode && serverConfig.audio.softwareMode === true) ? 'plug' : '';
-        return `ffmpeg ${baseOptions.flags} -f alsa -i "${audioDevicePrefix}${serverConfig.audio.audioDevice}" ` +
-            `${baseOptions.codec} ${baseOptions.output} pipe:1 | node server/stream/3las.server.js -port ` +
-            `${serverConfig.webserver.webserverPort + 10} -samplerate 48000 -channels ${serverConfig.audio.audioChannels}`;
+        logInfo('[Audio Stream] Platform: Linux. Using "alsa" input.');
+        const recCommand = `arecord -D "${audioDevicePrefix}${serverConfig.audio.audioDevice}" -f S16_LE -r 48000 -c 2 -t raw -`;
+        return `${recCommand} | node server/stream/3las.server.js -port ${serverConfig.webserver.webserverPort + 10}` +
+            ` -samplerate 48000 -channels ${serverConfig.audio.audioChannels}`;
     }
 }
 
@@ -44,6 +44,9 @@ function enableAudioStream() {
     // Only log device details on non-macOS platforms.
     if (process.platform !== 'darwin') {
         logInfo(`Trying to start audio stream on device: \x1b[35m${serverConfig.audio.audioDevice}\x1b[0m`);
+    }
+    else {
+        logInfo(`Trying to start audio stream on default input device.`);
     }
 
     logInfo(`Using internal audio network port: ${serverConfig.webserver.webserverPort + 10}`);
