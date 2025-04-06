@@ -1,7 +1,29 @@
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const ffmpeg = require('ffmpeg-static');
 const { configName, serverConfig, configUpdate, configSave, configExists } = require('../server_config');
 const { logDebug, logError, logInfo, logWarn, logFfmpeg } = require('../console');
+
+function checkAudioUtilities() {
+    if (process.platform === 'darwin') {
+        try {
+            execSync('which rec');
+            console.log('[Audio Utility Check] SoX ("rec") found.');
+        } catch (error) {
+            logError('[Audio Utility Check] Error: SoX ("rec") not found. Please install SoX (e.g., using `brew install sox`).');
+            process.exit(1); // Exit the process with an error code
+        }
+    } else if (process.platform === 'linux') {
+        try {
+            execSync('which arecord');
+            console.log('[Audio Utility Check] ALSA ("arecord") found.');
+        } catch (error) {
+            logError('[Audio Utility Check] Error: ALSA ("arecord") not found. Please ensure ALSA utilities are installed (e.g., using `sudo apt-get install alsa-utils` or `sudo yum install alsa-utils`).');
+            process.exit(1); // Exit the process with an error code
+        }
+    } else {
+        console.log(`[Audio Utility Check] Platform "${process.platform}" does not require explicit checks for rec or arecord.`);
+    }
+}
 
 function buildCommand() {
     // Common audio options for FFmpeg
@@ -29,7 +51,7 @@ function buildCommand() {
         // If softwareMode is enabled, prefix the device with 'plug'
         const audioDevicePrefix = (serverConfig.audio.softwareMode && serverConfig.audio.softwareMode === true) ? 'plug' : '';
         logInfo('[Audio Stream] Platform: Linux. Using "alsa" input.');
-        const recCommand = `arecord -D "${audioDevicePrefix}${serverConfig.audio.audioDevice}" -f S16_LE -r 48000 -c 2 -t raw -`;
+        const recCommand = `arecord -D "${audioDevicePrefix}${serverConfig.audio.audioDevice}" -f S16_LE -r 48000 -c ${serverConfig.audio.audioChannels} -t raw -`;
         return `${recCommand} | node server/stream/3las.server.js -port ${serverConfig.webserver.webserverPort + 10}` +
             ` -samplerate 48000 -channels ${serverConfig.audio.audioChannels}`;
     }
@@ -46,7 +68,7 @@ function enableAudioStream() {
         logInfo(`Trying to start audio stream on device: \x1b[35m${serverConfig.audio.audioDevice}\x1b[0m`);
     }
     else {
-    // For macOS, log the default audio device.
+        // For macOS, log the default audio device.
         logInfo(`Trying to start audio stream on default input device.`);
     }
 
@@ -87,5 +109,6 @@ function enableAudioStream() {
 }
 
 if (configExists()) {
+    checkAudioUtilities();
     enableAudioStream();
 }
