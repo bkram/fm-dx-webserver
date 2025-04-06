@@ -41,11 +41,12 @@ function enableAudioStream() {
     let startupSuccess = false;
     const command = buildCommand();
 
-    // Only log device details on non-macOS platforms.
+    // Only log audio device details if the platform is not macOS.
     if (process.platform !== 'darwin') {
         logInfo(`Trying to start audio stream on device: \x1b[35m${serverConfig.audio.audioDevice}\x1b[0m`);
     }
     else {
+    // For macOS, log the default audio device.
         logInfo(`Trying to start audio stream on default input device.`);
     }
 
