@@ -419,17 +419,17 @@ function handleData(wss, receivedData, rdsWss) {
 
           switch (diIndex) {
             case 0:
-              // DI bit 0: 0 = stereo, 1 = mono
-              dataToSend.rds_di.stereo = diValue === 0;
+              dataToSend.rds_di.dynamic_pty = diValue === 1;
               break;
             case 1:
-              dataToSend.rds_di.artificial_head = diValue === 1;
-              break;
-            case 2:
               dataToSend.rds_di.compressed = diValue === 1;
               break;
+            case 2:
+              dataToSend.rds_di.artificial_head = diValue === 1;
+              break;
             case 3:
-              dataToSend.rds_di.dynamic_pty = diValue === 1;
+              // DI bit 3: 0 = stereo, 1 = mono
+              dataToSend.rds_di.stereo = diValue === 0;
               break;
           }
         }
