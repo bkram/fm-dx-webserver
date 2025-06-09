@@ -287,6 +287,12 @@ function rdsReceived() {
 function rdsReset() {
   resetToDefault(dataToSend);
   dataToSend.af.length = 0;
+  dataToSend.rds_di = {
+    stereo: null,
+    compressed: null,
+    artificial_head: null,
+    dynamic_pty: null,
+  };
   rdsparser.clear(rds);
   if (rdsTimeoutTimer) {
     clearTimeout(rdsTimeoutTimer);
@@ -413,7 +419,7 @@ function handleData(wss, receivedData, rdsWss) {
         const blockB = parseInt(modifiedData.slice(4, 8), 16);
         const groupType = (blockB >> 12) & 0xf;
         const versionCode = (blockB >> 11) & 0x1;
-        if (groupType === 0 && versionCode === 0) {
+        if (groupType === 0 && (versionCode === 0 || versionCode === 1)) {
           const diValue = (blockB >> 2) & 0x1;
           const diIndex = blockB & 0x3;
 
