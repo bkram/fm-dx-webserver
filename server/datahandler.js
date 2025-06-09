@@ -145,10 +145,11 @@ const callbacks = {
     dataToSend.rt_flag = flag;
   }, 'callback_rt*'),
 
-  ptyn: koffi.register((rds, flag) => (
-    value = decode_unicode(rdsparser.get_ptyn(rds))
+  ptyn: koffi.register((rds, flag) => {
+    value = decode_unicode(rdsparser.get_ptyn(rds));
+    dataToSend.ptyn = value;
     /*console.log('PTYN: ' + value)*/
-  ), 'callback_ptyn*'),
+  }, 'callback_ptyn*'),
 
   ct: koffi.register((rds, ct) => (
     year = rdsparser.ct_get_year(ct),
@@ -222,6 +223,7 @@ var dataToSend = {
   ta: 0,
   ms: -1,
   pty: 0,
+  ptyn: '',
   ecc: null,
   af: [],
   rt0: '',
