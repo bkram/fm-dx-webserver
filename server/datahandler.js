@@ -418,7 +418,7 @@ function handleData(wss, receivedData, rdsWss) {
 
           switch (diIndex) {
             case 0:
-              dataToSend.rds_di.stereo = diValue === 0;
+              dataToSend.rds_di.stereo = diValue === 1;
               break;
             case 1:
               dataToSend.rds_di.artificial_head = diValue === 1;
