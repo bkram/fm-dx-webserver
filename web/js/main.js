@@ -995,6 +995,13 @@ const updateDataElements = throttle(function(parsedData) {
 
     updateTextIfChanged($dataPty, rdsMode == 'true' ? usa_programmes[parsedData.pty] : europe_programmes[parsedData.pty]);
     updateTextIfChanged($dataPtyn, parsedData.ptyn || '');
+    if (parsedData.ptyn && parsedData.ptyn.trim().length > 0) {
+        $dataPty.hide();
+        $dataPtyn.show();
+    } else {
+        $dataPty.show();
+        $dataPtyn.hide();
+    }
     
     if (parsedData.rds === true) {
         $flagDesktopCointainer.css('background-color', 'var(--color-2-transparent)');
