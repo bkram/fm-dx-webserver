@@ -182,6 +182,10 @@ table .form-group {
     display: none;
 }
 
+#di-container-phone {
+    display: none;
+}
+
 #login-form {
     padding: 5px;
 }
@@ -214,12 +218,16 @@ h3.settings-heading {
 }
 
 #flags-container-phone,
-#flags-container-desktop {
+#flags-container-desktop,
+#di-container-phone,
+#di-container-desktop {
     position: relative; /* Confine overlay within container which is necessary for iPhones */
 }
 
 #flags-container-phone .overlay,
-#flags-container-desktop .overlay {
+#flags-container-desktop .overlay,
+#di-container-phone .overlay,
+#di-container-desktop .overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -377,6 +385,12 @@ pre {
         display: none;
     }
     #flags-container-phone {
+        display: block;
+    }
+    #di-container-desktop {
+        display: none;
+    }
+    #di-container-phone {
         display: block;
     }
     #tune-buttons {

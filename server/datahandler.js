@@ -145,10 +145,11 @@ const callbacks = {
     dataToSend.rt_flag = flag;
   }, 'callback_rt*'),
 
-  ptyn: koffi.register((rds, flag) => (
-    value = decode_unicode(rdsparser.get_ptyn(rds))
+  ptyn: koffi.register((rds, flag) => {
+    value = decode_unicode(rdsparser.get_ptyn(rds));
+    dataToSend.ptyn = value;
     /*console.log('PTYN: ' + value)*/
-  ), 'callback_ptyn*'),
+  }, 'callback_ptyn*'),
 
   ct: koffi.register((rds, ct) => (
     year = rdsparser.ct_get_year(ct),
@@ -222,11 +223,18 @@ var dataToSend = {
   ta: 0,
   ms: -1,
   pty: 0,
+  ptyn: '',
   ecc: null,
   af: [],
   rt0: '',
   rt1: '',
   rt_flag: '',
+  rds_di: {
+    stereo: null,
+    compressed: null,
+    artificial_head: null,
+    dynamic_pty: null,
+  },
   ims: 0,
   eq: 0,
   ant: 0,
@@ -257,7 +265,7 @@ const filterMappings = {
 
 var legacyRdsPiBuffer = null;
 var lastUpdateTime = Date.now();
-const initialData = { ...dataToSend };
+const initialData = JSON.parse(JSON.stringify(dataToSend));
 const resetToDefault = dataToSend => Object.assign(dataToSend, initialData);
 
 // Serialport reconnect variables
@@ -279,6 +287,12 @@ function rdsReceived() {
 function rdsReset() {
   resetToDefault(dataToSend);
   dataToSend.af.length = 0;
+  dataToSend.rds_di = {
+    stereo: null,
+    compressed: null,
+    artificial_head: null,
+    dynamic_pty: null,
+  };
   rdsparser.clear(rds);
   if (rdsTimeoutTimer) {
     clearTimeout(rdsTimeoutTimer);
@@ -401,6 +415,31 @@ function handleData(wss, receivedData, rdsWss) {
         });
 
         rdsparser.parse_string(rds, modifiedData);
+
+        const blockB = parseInt(modifiedData.slice(4, 8), 16);
+        const groupType = (blockB >> 12) & 0xf;
+        const versionCode = (blockB >> 11) & 0x1;
+        if (groupType === 0 && (versionCode === 0 || versionCode === 1)) {
+          const diValue = (blockB >> 2) & 0x1;
+          const diIndex = blockB & 0x3;
+
+          switch (diIndex) {
+            case 0:
+              dataToSend.rds_di.dynamic_pty = diValue === 1;
+              break;
+            case 1:
+              dataToSend.rds_di.compressed = diValue === 1;
+              break;
+            case 2:
+              dataToSend.rds_di.artificial_head = diValue === 1;
+              break;
+            case 3:
+              // DI bit 3: 1 = stereo, 0 = mono
+              dataToSend.rds_di.stereo = diValue === 1;
+              break;
+          }
+        }
+
         legacyRdsPiBuffer = null;
         break;
     }
