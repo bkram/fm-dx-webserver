@@ -888,6 +888,10 @@ const $dataStationContainer = $('#data-station-container');
 const $dataTp = $('.data-tp');
 const $dataTa = $('.data-ta');
 const $dataMs = $('.data-ms');
+const $dataDiStereo = $('.data-di-stereo');
+const $dataDiAh = $('.data-di-ah');
+const $dataDiCompressed = $('.data-di-compressed');
+const $dataDiDpty = $('.data-di-dpty');
 const $flagDesktopCointainer = $('#flags-container-desktop');
 const $dataPty = $('.data-pty');
 const $dataPtyn = $('.data-ptyn');
@@ -1043,6 +1047,18 @@ const updateDataElements = throttle(function(parsedData) {
                 : "<span class='opacity-full'>M</span><span class='opacity-half'>S</span>"
             )
         );
+        $dataDiStereo.html(parsedData.rds_di && parsedData.rds_di.stereo
+            ? 'ST'
+            : "<span class='opacity-half'>ST</span>");
+        $dataDiAh.html(parsedData.rds_di && parsedData.rds_di.artificial_head
+            ? 'AH'
+            : "<span class='opacity-half'>AH</span>");
+        $dataDiCompressed.html(parsedData.rds_di && parsedData.rds_di.compressed
+            ? 'CO'
+            : "<span class='opacity-half'>CO</span>");
+        $dataDiDpty.html(parsedData.rds_di && parsedData.rds_di.dynamic_pty
+            ? 'DP'
+            : "<span class='opacity-half'>DP</span>");
     }
     
     if (updateCounter % 30 === 0) {
