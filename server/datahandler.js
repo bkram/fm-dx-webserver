@@ -412,12 +412,14 @@ function handleData(wss, receivedData, rdsWss) {
 
         const blockB = parseInt(modifiedData.slice(4, 8), 16);
         const groupType = (blockB >> 12) & 0xf;
-        if (groupType === 0) {
+        const versionCode = (blockB >> 11) & 0x1;
+        if (groupType === 0 && versionCode === 0) {
           const diValue = (blockB >> 2) & 0x1;
           const diIndex = blockB & 0x3;
 
           switch (diIndex) {
             case 0:
+              // DI bit 0: 0 = stereo, 1 = mono
               dataToSend.rds_di.stereo = diValue === 0;
               break;
             case 1:
