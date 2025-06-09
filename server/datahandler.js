@@ -434,8 +434,8 @@ function handleData(wss, receivedData, rdsWss) {
               dataToSend.rds_di.artificial_head = diValue === 1;
               break;
             case 3:
-              // DI bit 3: 0 = stereo, 1 = mono
-              dataToSend.rds_di.stereo = diValue === 0;
+              // DI bit 3: 1 = stereo, 0 = mono
+              dataToSend.rds_di.stereo = diValue === 1;
               break;
           }
         }
