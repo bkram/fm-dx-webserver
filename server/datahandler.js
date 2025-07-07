@@ -230,10 +230,10 @@ var dataToSend = {
   rt1: '',
   rt_flag: '',
   rds_di: {
-    stereo: false
-    compressed: false
-    artificial_head: false
-    dynamic_pty: false
+    stereo: false,
+    compressed: false,
+    artificial_head: false,
+    dynamic_pty: false,
   },
   ims: 0,
   eq: 0,
