@@ -1055,20 +1055,34 @@ const updateDataElements = throttle(function(parsedData) {
             )
         );
         const stereo = parsedData.rds_di ? parsedData.rds_di.stereo : null;
+        const stereoState = stereo === null ? 'unknown' : (stereo ? 'stereo' : 'mono');
         $dataDiStereo.html(stereo ? 'ST' : "<span class='opacity-half'>ST</span>")
-            .attr('aria-label', `DI bit 3: ${stereo === null ? 'unknown' : (stereo ? 'stereo' : 'mono')}`);
+            .attr('aria-label', `DI bit 3: ${stereoState}`)
+            .attr('data-tooltip', `DI bit 3 \u2013 1: stereo, 0: mono (current: ${stereoState})`);
 
         const ah = parsedData.rds_di ? parsedData.rds_di.artificial_head : null;
+        const ahState = ah === null ? 'unknown' : (ah ? 'artificial head' : 'normal');
         $dataDiAh.html(ah ? 'AH' : "<span class='opacity-half'>AH</span>")
-            .attr('aria-label', `DI bit 2: ${ah === null ? 'unknown' : (ah ? 'artificial head' : 'normal')}`);
+            .attr('aria-label', `DI bit 2: ${ahState}`)
+            .attr('data-tooltip', `DI bit 2 \u2013 1: artificial head, 0: normal (current: ${ahState})`);
 
         const compressed = parsedData.rds_di ? parsedData.rds_di.compressed : null;
+        const compState = compressed === null ? 'unknown' : (compressed ? 'compressed' : 'not compressed');
         $dataDiCompressed.html(compressed ? 'CO' : "<span class='opacity-half'>CO</span>")
-            .attr('aria-label', `DI bit 1: ${compressed === null ? 'unknown' : (compressed ? 'compressed' : 'not compressed')}`);
+            .attr('aria-label', `DI bit 1: ${compState}`)
+            .attr('data-tooltip', `DI bit 1 \u2013 1: compressed, 0: not compressed (current: ${compState})`);
 
         const dpty = parsedData.rds_di ? parsedData.rds_di.dynamic_pty : null;
+        const dptyState = dpty === null ? 'unknown' : (dpty ? 'dynamic PTY' : 'static');
         $dataDiDpty.html(dpty ? 'DP' : "<span class='opacity-half'>DP</span>")
-            .attr('aria-label', `DI bit 0: ${dpty === null ? 'unknown' : (dpty ? 'dynamic PTY' : 'static')}`);
+            .attr('aria-label', `DI bit 0: ${dptyState}`)
+            .attr('data-tooltip', `DI bit 0 \u2013 1: dynamic PTY, 0: static (current: ${dptyState})`);
+
+        initTooltips($dataDiStereo);
+        initTooltips($dataDiAh);
+        initTooltips($dataDiCompressed);
+        initTooltips($dataDiDpty);
+
     }
     
     if (updateCounter % 30 === 0) {
