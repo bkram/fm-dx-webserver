@@ -1082,6 +1082,7 @@ const updateDataElements = throttle(function(parsedData) {
         initTooltips($dataDiAh);
         initTooltips($dataDiCompressed);
         initTooltips($dataDiDpty);
+
     }
     
     if (updateCounter % 30 === 0) {
