@@ -1054,18 +1054,21 @@ const updateDataElements = throttle(function(parsedData) {
                 : "<span class='opacity-full'>M</span><span class='opacity-half'>S</span>"
             )
         );
-        $dataDiStereo.html(parsedData.rds_di && parsedData.rds_di.stereo
-            ? 'ST'
-            : "<span class='opacity-half'>ST</span>");
-        $dataDiAh.html(parsedData.rds_di && parsedData.rds_di.artificial_head
-            ? 'AH'
-            : "<span class='opacity-half'>AH</span>");
-        $dataDiCompressed.html(parsedData.rds_di && parsedData.rds_di.compressed
-            ? 'CO'
-            : "<span class='opacity-half'>CO</span>");
-        $dataDiDpty.html(parsedData.rds_di && parsedData.rds_di.dynamic_pty
-            ? 'DP'
-            : "<span class='opacity-half'>DP</span>");
+        const stereo = parsedData.rds_di ? parsedData.rds_di.stereo : null;
+        $dataDiStereo.html(stereo ? 'ST' : "<span class='opacity-half'>ST</span>")
+            .attr('aria-label', `DI bit 3: ${stereo === null ? 'unknown' : (stereo ? 'stereo' : 'mono')}`);
+
+        const ah = parsedData.rds_di ? parsedData.rds_di.artificial_head : null;
+        $dataDiAh.html(ah ? 'AH' : "<span class='opacity-half'>AH</span>")
+            .attr('aria-label', `DI bit 2: ${ah === null ? 'unknown' : (ah ? 'artificial head' : 'normal')}`);
+
+        const compressed = parsedData.rds_di ? parsedData.rds_di.compressed : null;
+        $dataDiCompressed.html(compressed ? 'CO' : "<span class='opacity-half'>CO</span>")
+            .attr('aria-label', `DI bit 1: ${compressed === null ? 'unknown' : (compressed ? 'compressed' : 'not compressed')}`);
+
+        const dpty = parsedData.rds_di ? parsedData.rds_di.dynamic_pty : null;
+        $dataDiDpty.html(dpty ? 'DP' : "<span class='opacity-half'>DP</span>")
+            .attr('aria-label', `DI bit 0: ${dpty === null ? 'unknown' : (dpty ? 'dynamic PTY' : 'static')}`);
     }
     
     if (updateCounter % 30 === 0) {
