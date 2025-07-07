@@ -12,6 +12,7 @@ FM-DX Webserver is a cross-platform web server designed for FM DXers who want to
 - **FM DXing:** Enhance your FM/AM DXing experience with a user-friendly web interface.
 - **Cross-Platform:** You can run this on both Windows and Linux servers along with xdrd.
 - **Low-latency streaming**: Built in directly into the webserver, no external apps needed for users
+- **DI bit indicators**: Stereo, Artificial Head, Compression and Dynamic PTY labels only dim when the receiver doesn't provide DI data
 
 ## Features to be added
 Check [here](https://trello.com/b/OAKo7n0Q/fm-dx-webserver) for an up to date task list

@@ -1056,27 +1056,31 @@ const updateDataElements = throttle(function(parsedData) {
         );
         const stereo = parsedData.rds_di ? parsedData.rds_di.stereo : null;
         const stereoState = stereo === null ? 'unknown' : (stereo ? 'stereo' : 'mono');
-        $dataDiStereo.html(stereo ? 'ST' : "<span class='opacity-half'>ST</span>")
+        $dataDiStereo.text('ST')
             .attr('aria-label', `DI bit 3: ${stereoState}`)
-            .attr('data-tooltip', `DI bit 3 \u2013 1: stereo, 0: mono (current: ${stereoState})`);
+            .attr('data-tooltip', `DI bit 3 \u2013 1: stereo, 0: mono (current: ${stereoState})`)
+            .toggleClass('opacity-half', stereo === null);
 
         const ah = parsedData.rds_di ? parsedData.rds_di.artificial_head : null;
         const ahState = ah === null ? 'unknown' : (ah ? 'artificial head' : 'normal');
-        $dataDiAh.html(ah ? 'AH' : "<span class='opacity-half'>AH</span>")
+        $dataDiAh.text('AH')
             .attr('aria-label', `DI bit 2: ${ahState}`)
-            .attr('data-tooltip', `DI bit 2 \u2013 1: artificial head, 0: normal (current: ${ahState})`);
+            .attr('data-tooltip', `DI bit 2 \u2013 1: artificial head, 0: normal (current: ${ahState})`)
+            .toggleClass('opacity-half', ah === null);
 
         const compressed = parsedData.rds_di ? parsedData.rds_di.compressed : null;
         const compState = compressed === null ? 'unknown' : (compressed ? 'compressed' : 'not compressed');
-        $dataDiCompressed.html(compressed ? 'CO' : "<span class='opacity-half'>CO</span>")
+        $dataDiCompressed.text('CO')
             .attr('aria-label', `DI bit 1: ${compState}`)
-            .attr('data-tooltip', `DI bit 1 \u2013 1: compressed, 0: not compressed (current: ${compState})`);
+            .attr('data-tooltip', `DI bit 1 \u2013 1: compressed, 0: not compressed (current: ${compState})`)
+            .toggleClass('opacity-half', compressed === null);
 
         const dpty = parsedData.rds_di ? parsedData.rds_di.dynamic_pty : null;
         const dptyState = dpty === null ? 'unknown' : (dpty ? 'dynamic PTY' : 'static');
-        $dataDiDpty.html(dpty ? 'DP' : "<span class='opacity-half'>DP</span>")
+        $dataDiDpty.text('DP')
             .attr('aria-label', `DI bit 0: ${dptyState}`)
-            .attr('data-tooltip', `DI bit 0 \u2013 1: dynamic PTY, 0: static (current: ${dptyState})`);
+            .attr('data-tooltip', `DI bit 0 \u2013 1: dynamic PTY, 0: static (current: ${dptyState})`)
+            .toggleClass('opacity-half', dpty === null);
 
         initTooltips($dataDiStereo);
         initTooltips($dataDiAh);
