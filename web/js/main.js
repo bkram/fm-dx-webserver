@@ -897,6 +897,8 @@ const $dataTa = $('.data-ta');
 const $dataMs = $('.data-ms');
 const $flagDesktopCointainer = $('#flags-container-desktop');
 const $dataPty = $('.data-pty');
+const $dataPtyn = $('#data-ptyn span');
+const $dataDi = $('.data-di');
 
 // Throttling function to limit the frequency of updates
 function throttle(fn, wait) {
@@ -994,7 +996,8 @@ const updateDataElements = throttle(function(parsedData) {
     
     updateHtmlIfChanged($dataRt0, processString(parsedData.rt0, parsedData.rt0_errors));
     updateHtmlIfChanged($dataRt1, processString(parsedData.rt1, parsedData.rt1_errors));
-    
+    updateHtmlIfChanged($dataPtyn, processString(parsedData.ptyn, parsedData.ptyn_errors));
+
     updateTextIfChanged($dataPty, rdsMode == 'true' ? usa_programmes[parsedData.pty] : europe_programmes[parsedData.pty]);
     
     if (parsedData.rds === true) {
@@ -1049,6 +1052,7 @@ const updateDataElements = throttle(function(parsedData) {
                 : "<span class='opacity-full'>M</span><span class='opacity-half'>S</span>"
             )
         );
+        $dataDi.html((parsedData.di & 0x8) === 0 ? "<span class='opacity-half'>DI</span>" : "DI");
     }
     
     if (updateCounter % 30 === 0) {
