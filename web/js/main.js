@@ -1052,7 +1052,16 @@ const updateDataElements = throttle(function(parsedData) {
                 : "<span class='opacity-full'>M</span><span class='opacity-half'>S</span>"
             )
         );
-        $dataDi.html((parsedData.di & 0x8) === 0 ? "<span class='opacity-half'>DI</span>" : "DI");
+        const diDesc = [
+            `Stereo/Mono: ${(parsedData.di & 0x1) ? 'Mono' : 'Stereo'}`,
+            `Artificial Head: ${(parsedData.di & 0x2) ? 'Yes' : 'No'}`,
+            `Compressed: ${(parsedData.di & 0x4) ? 'Yes' : 'No'}`,
+            `Dynamic PTY: ${(parsedData.di & 0x8) ? 'Yes' : 'No'}`
+        ].join('<br>');
+        $dataDi
+            .html((parsedData.di & 0x8) === 0 ? "<span class='opacity-half'>DI</span>" : "DI")
+            .attr('data-tooltip', diDesc)
+            .attr('aria-label', diDesc.replace(/<br>/g, ', '));
     }
     
     if (updateCounter % 30 === 0) {
