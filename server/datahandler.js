@@ -408,8 +408,8 @@ function handleData(wss, receivedData, rdsWss) {
         const blockB = parseInt(modifiedData.slice(4, 8), 16);
         const groupType = (blockB >> 12) & 0xF;
         if (groupType === 0) {
-          const diVal = (blockB >> 2) & 0x1;
-          const diIndex = blockB & 0x3;
+          const diIndex = (blockB >> 1) & 0x3;
+          const diVal = blockB & 0x1;
           dataToSend.di = (dataToSend.di & ~(1 << diIndex)) | (diVal << diIndex);
         }
 
