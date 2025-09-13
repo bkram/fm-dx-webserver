@@ -1053,10 +1053,10 @@ const updateDataElements = throttle(function(parsedData) {
             )
         );
         const diDesc = [
-            `Stereo/Mono: ${(parsedData.di & 0x1) ? 'Mono' : 'Stereo'}`,
-            `Artificial Head: ${(parsedData.di & 0x2) ? 'Yes' : 'No'}`,
-            `Compressed: ${(parsedData.di & 0x4) ? 'Yes' : 'No'}`,
-            `Dynamic PTY: ${(parsedData.di & 0x8) ? 'Yes' : 'No'}`
+            `Stereo/Mono: ${(parsedData.di & 0x8) ? 'Mono' : 'Stereo'}`,
+            `Artificial Head: ${(parsedData.di & 0x4) ? 'Yes' : 'No'}`,
+            `Compressed: ${(parsedData.di & 0x2) ? 'Yes' : 'No'}`,
+            `Dynamic PTY: ${(parsedData.di & 0x1) ? 'Yes' : 'No'}`
         ].join('<br>');
         $dataDi
             .html((parsedData.di & 0xF) === 0 ? "<span class='opacity-half'>DI</span>" : "DI")
