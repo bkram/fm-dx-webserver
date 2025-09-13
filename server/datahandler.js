@@ -409,9 +409,9 @@ function handleData(wss, receivedData, rdsWss) {
         const blockB = parseInt(modifiedData.slice(4, 8), 16);
         const groupType = (blockB >> 12) & 0xF;
         if (groupType === 0 && (errors & 0x30) === 0) {
-          // Bits 1-2 select the DI flag index; bit 3 holds the flag value (bit 0 = MS)
+          // Bits 1-2 select the DI flag index; bit 0 holds the flag value
           const diIndex = (blockB >> 1) & 0x3;
-          const diVal = (blockB >> 3) & 0x1;
+          const diVal = blockB & 0x1;
           dataToSend.di = (dataToSend.di & ~(1 << diIndex)) | (diVal << diIndex);
         }
 
