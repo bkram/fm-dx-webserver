@@ -1061,6 +1061,7 @@ const updateDataElements = throttle(function(parsedData) {
         $dataDi
             .html((parsedData.di & 0x8) === 0 ? "<span class='opacity-half'>DI</span>" : "DI")
             .attr('data-tooltip', diDesc)
+            .data('tooltip', diDesc)
             .attr('aria-label', diDesc.replace(/<br>/g, ', '));
     }
     
