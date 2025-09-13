@@ -392,8 +392,9 @@ function handleData(wss, receivedData, rdsWss) {
           modifiedData += errorsNew.toString(16).padStart(2, '0');
         }
 
+        const errors = parseInt(modifiedData.slice(-2), 16);
+
         rdsWss.clients.forEach((client) => {
-          const errors = parseInt(modifiedData.slice(-2), 16);
           let data = (((errors & 0xC0) == 0) ? modifiedData.slice(0, 4) : '----');
           data += (((errors & 0x30) == 0) ? modifiedData.slice(4, 8) : '----');
           data += (((errors & 0x0C) == 0) ? modifiedData.slice(8, 12) : '----');
@@ -407,12 +408,10 @@ function handleData(wss, receivedData, rdsWss) {
         // Decode RDS DI bits for group type 0A/0B
         const blockB = parseInt(modifiedData.slice(4, 8), 16);
         const groupType = (blockB >> 12) & 0xF;
-        if (groupType === 0) {
+        if (groupType === 0 && (errors & 0x30) === 0) {
           const diIndex = (blockB >> 1) & 0x3;
           const diVal = blockB & 0x1;
-          const bitMap = [3, 2, 1, 0];
-          const pos = bitMap[diIndex];
-          dataToSend.di = (dataToSend.di & ~(1 << pos)) | (diVal << pos);
+          dataToSend.di = (dataToSend.di & ~(1 << diIndex)) | (diVal << diIndex);
         }
 
         rdsparser.parse_string(rds, modifiedData);

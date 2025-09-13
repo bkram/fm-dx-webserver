@@ -1059,7 +1059,7 @@ const updateDataElements = throttle(function(parsedData) {
             `Dynamic PTY: ${(parsedData.di & 0x8) ? 'Yes' : 'No'}`
         ].join('<br>');
         $dataDi
-            .html((parsedData.di & 0x8) === 0 ? "<span class='opacity-half'>DI</span>" : "DI")
+            .html((parsedData.di & 0xF) === 0 ? "<span class='opacity-half'>DI</span>" : "DI")
             .attr('data-tooltip', diDesc)
             .data('tooltip', diDesc)
             .attr('aria-label', diDesc.replace(/<br>/g, ', '));
