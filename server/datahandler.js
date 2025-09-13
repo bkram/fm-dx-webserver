@@ -225,6 +225,7 @@ var dataToSend = {
   ms: -1,
   pty: 0,
   di: 0,
+  diDecoded: {},
   ecc: null,
   af: [],
   rt0: '',
@@ -408,11 +409,23 @@ function handleData(wss, receivedData, rdsWss) {
         // Decode RDS DI bits for group type 0A/0B
         const blockB = parseInt(modifiedData.slice(4, 8), 16);
         const groupType = (blockB >> 12) & 0xF;
+
         if (groupType === 0 && (errors & 0x30) === 0) {
-          // Bits 0-1 select the DI flag index; bit 2 holds the flag value
-          const diIndex = blockB & 0x3;
-          const diVal = (blockB >> 2) & 0x1;
-          dataToSend.di = (dataToSend.di & ~(1 << diIndex)) | (diVal << diIndex);
+          // Bits 11-10: DI segment address (C1 C0)
+          const diIndex = (blockB >> 10) & 0x3;
+          // Bit 9: DI flag value
+          const diVal = (blockB >> 9) & 0x1;
+          // Store DI bit in correct position (d3..d0, MSB first)
+          dataToSend.di = (dataToSend.di & ~(1 << (3 - diIndex))) | (diVal << (3 - diIndex));
+
+          // Optional: interpret DI bits once all 4 are collected
+          if (typeof dataToSend.diDecoded === "undefined") dataToSend.diDecoded = {};
+          dataToSend.diDecoded = {
+            stereoMono: (dataToSend.di >> 3) & 1 ? "Mono" : "Stereo",
+            artificialHead: (dataToSend.di >> 2) & 1 ? "Yes" : "No",
+            compressed: (dataToSend.di >> 1) & 1 ? "Yes" : "No",
+            dynamicPTY: (dataToSend.di >> 0) & 1 ? "Dynamic" : "Static",
+          };
         }
 
         rdsparser.parse_string(rds, modifiedData);
