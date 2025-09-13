@@ -410,7 +410,9 @@ function handleData(wss, receivedData, rdsWss) {
         if (groupType === 0) {
           const diIndex = (blockB >> 1) & 0x3;
           const diVal = blockB & 0x1;
-          dataToSend.di = (dataToSend.di & ~(1 << diIndex)) | (diVal << diIndex);
+          const bitMap = [3, 2, 1, 0];
+          const pos = bitMap[diIndex];
+          dataToSend.di = (dataToSend.di & ~(1 << pos)) | (diVal << pos);
         }
 
         rdsparser.parse_string(rds, modifiedData);
