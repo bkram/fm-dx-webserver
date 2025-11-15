@@ -897,7 +897,6 @@ const $dataTa = $('.data-ta');
 const $dataMs = $('.data-ms');
 const $flagDesktopCointainer = $('#flags-container-desktop');
 const $dataPty = $('.data-pty');
-const $dataPtyn = $('#data-ptyn span');
 const $dataDi = $('.data-di');
 
 // Throttling function to limit the frequency of updates
@@ -996,9 +995,14 @@ const updateDataElements = throttle(function(parsedData) {
     
     updateHtmlIfChanged($dataRt0, processString(parsedData.rt0, parsedData.rt0_errors));
     updateHtmlIfChanged($dataRt1, processString(parsedData.rt1, parsedData.rt1_errors));
-    updateHtmlIfChanged($dataPtyn, processString(parsedData.ptyn, parsedData.ptyn_errors));
 
-    updateTextIfChanged($dataPty, rdsMode == 'true' ? usa_programmes[parsedData.pty] : europe_programmes[parsedData.pty]);
+    const ptynString = parsedData.ptyn ?? '';
+    const hasDynamicPtyn = Boolean(parsedData.dynamicPty) && ptynString.trim().length > 0;
+    if (hasDynamicPtyn) {
+        updateHtmlIfChanged($dataPty, processString(ptynString, parsedData.ptyn_errors));
+    } else {
+        updateTextIfChanged($dataPty, rdsMode == 'true' ? usa_programmes[parsedData.pty] : europe_programmes[parsedData.pty]);
+    }
     
     if (parsedData.rds === true) {
         $flagDesktopCointainer.css('background-color', 'var(--color-2-transparent)');

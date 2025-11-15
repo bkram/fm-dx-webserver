@@ -224,6 +224,7 @@ var dataToSend = {
   rds: false,
   ps: '',
   ptyn: '',
+  dynamicPty: 0,
   tp: 0,
   ta: 0,
   ms: -1,
@@ -417,6 +418,9 @@ function handleData(wss, receivedData, rdsWss) {
           const diIndex = blockB & 0x3;
           const diVal = (blockB >> 2) & 0x1;
           dataToSend.di = (dataToSend.di & ~(1 << diIndex)) | (diVal << diIndex);
+          if (diIndex === 3) {
+            dataToSend.dynamicPty = diVal;
+          }
         }
 
         rdsparser.parse_string(rds, modifiedData);
