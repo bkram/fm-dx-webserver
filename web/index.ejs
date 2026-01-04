@@ -24,6 +24,9 @@
   <meta property="og:description" content="Server description: <%= tunerDescMeta %>.">
 
   <!-- 3LAS Scripts for Audio streaming -->
+  <script type="text/javascript">
+    window.audioFallbackFormats = <%- JSON.stringify(audioFallbackFormats || {}) %>;
+  </script>
   <script src="js/3las/util/3las.helpers.js"></script>
   <script src="js/3las/util/3las.logging.js"></script>
   <script src="js/3las/fallback/3las.liveaudioplayer.js"></script>

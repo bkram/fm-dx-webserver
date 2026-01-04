@@ -59,29 +59,43 @@ router.get('/', (req, res) => {
             });
         });
     } else {
-            res.render('index', {
-                isAdminAuthenticated: req.session.isAdminAuthenticated,
-                isTuneAuthenticated: req.session.isTuneAuthenticated,
-                tunerName: serverConfig.identification.tunerName,
-                tunerDesc: helpers.parseMarkdown(serverConfig.identification.tunerDesc),
-                tunerDescMeta: helpers.removeMarkdown(serverConfig.identification.tunerDesc),
-                tunerLock: serverConfig.lockToAdmin,
-                publicTuner: serverConfig.publicTuner,
-                ownerContact: serverConfig.identification.contact,
-                antennas: serverConfig.antennas,
-                tuningLimit: serverConfig.webserver.tuningLimit,
-                tuningLowerLimit: serverConfig.webserver.tuningLowerLimit,
-                tuningUpperLimit: serverConfig.webserver.tuningUpperLimit,
-                chatEnabled: serverConfig.webserver.chatEnabled,
-                device: serverConfig.device,
-                tunerProfiles,
-                si47xxAgcControl: !!serverConfig.si47xx?.agcControl,
-                noPlugins,
-                plugins: serverConfig.plugins,
-                fmlist_integration: serverConfig.extras.fmlistIntegration,
-                fmlist_adminOnly: serverConfig.extras.fmlistAdminOnly,
-                bwSwitch: serverConfig.bwSwitch
-            });
+        const streamSettingsPath = path.join(__dirname, 'stream', 'settings.json');
+        let audioFallbackFormats = { mp3: true, wav: true };
+        try {
+            const streamSettingsRaw = fs.readFileSync(streamSettingsPath, 'utf8');
+            const streamSettings = JSON.parse(streamSettingsRaw);
+            audioFallbackFormats = {
+                mp3: !!streamSettings.FallbackUseMp3,
+                wav: !!streamSettings.FallbackUseWav
+            };
+        } catch (err) {
+            logWarn(`Failed to read stream settings for audio formats: ${err.message}`);
+        }
+
+        res.render('index', {
+            isAdminAuthenticated: req.session.isAdminAuthenticated,
+            isTuneAuthenticated: req.session.isTuneAuthenticated,
+            tunerName: serverConfig.identification.tunerName,
+            tunerDesc: helpers.parseMarkdown(serverConfig.identification.tunerDesc),
+            tunerDescMeta: helpers.removeMarkdown(serverConfig.identification.tunerDesc),
+            tunerLock: serverConfig.lockToAdmin,
+            publicTuner: serverConfig.publicTuner,
+            ownerContact: serverConfig.identification.contact,
+            antennas: serverConfig.antennas,
+            tuningLimit: serverConfig.webserver.tuningLimit,
+            tuningLowerLimit: serverConfig.webserver.tuningLowerLimit,
+            tuningUpperLimit: serverConfig.webserver.tuningUpperLimit,
+            chatEnabled: serverConfig.webserver.chatEnabled,
+            device: serverConfig.device,
+            tunerProfiles,
+            si47xxAgcControl: !!serverConfig.si47xx?.agcControl,
+            noPlugins,
+            plugins: serverConfig.plugins,
+            fmlist_integration: serverConfig.extras.fmlistIntegration,
+            fmlist_adminOnly: serverConfig.extras.fmlistAdminOnly,
+            bwSwitch: serverConfig.bwSwitch,
+            audioFallbackFormats
+        });
     }
 });
 
