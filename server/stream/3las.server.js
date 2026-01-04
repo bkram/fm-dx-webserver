@@ -302,7 +302,7 @@ class FallbackProviderWav extends AFallbackProvider {
             "-i", "pipe:0",
             "-c:a", "pcm_s16le",
             "-ar", Settings.FallbackWavSampleRate.toString(),
-            "-ac", "1",
+            "-ac", this.Server.Channels.toString(),
             "-f", "wav",
             "-flush_packets", "1", "-fflags", "+nobuffer", "-chunk_size", "384", "-packetsize", "384",
             "pipe:1"
