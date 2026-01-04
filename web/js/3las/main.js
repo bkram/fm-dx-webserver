@@ -2,11 +2,62 @@ let Stream;
 let shouldReconnect = true;
 let newVolumeGlobal = 1;
 let preferredAudioFormat = 'auto';
+const audioFormatSupport = window.audioFallbackFormats || { mp3: true, wav: true };
 
 function Init(_ev) {
     $(".playbutton").off('click').on('click', OnPlayButtonClick);  // Ensure only one event handler is attached
     $("#volumeSlider").off("input").on("input", updateVolume);  // Ensure only one event handler is attached
     $(".audio-format-select").off("change").on("change", onAudioFormatChange);
+    syncAudioFormatSelects();
+}
+
+function getEnabledFormats() {
+    const enabled = [];
+    if (audioFormatSupport.wav) enabled.push('wav');
+    if (audioFormatSupport.mp3) enabled.push('mp3');
+    return enabled;
+}
+
+function normalizePreferredAudioFormat() {
+    const enabled = getEnabledFormats();
+    if (enabled.length === 0) {
+        preferredAudioFormat = 'auto';
+        return;
+    }
+    if (preferredAudioFormat === 'auto') {
+        if (enabled.length === 1) preferredAudioFormat = enabled[0];
+        return;
+    }
+    if (!enabled.includes(preferredAudioFormat)) {
+        preferredAudioFormat = enabled[0];
+    }
+}
+
+function ensureOption($select, value, label, enabled) {
+    const existing = $select.find(`option[value="${value}"]`);
+    if (enabled) {
+        if (existing.length === 0) {
+            $select.append(`<option value="${value}">${label}</option>`);
+        }
+    } else {
+        existing.remove();
+    }
+}
+
+function syncAudioFormatSelects() {
+    const enabled = getEnabledFormats();
+    $(".audio-format-select").each(function () {
+        const $select = $(this);
+        ensureOption($select, 'wav', 'WAV', audioFormatSupport.wav);
+        ensureOption($select, 'mp3', 'MP3', audioFormatSupport.mp3);
+        if (enabled.length === 0) {
+            $select.prop('disabled', true);
+        } else {
+            $select.prop('disabled', false);
+        }
+    });
+    normalizePreferredAudioFormat();
+    $(".audio-format-select").val(preferredAudioFormat);
 }
 
 function applyAudioFormatPreference(settings) {
@@ -95,7 +146,8 @@ function updateVolume() {
 function onAudioFormatChange() {
     const selectedFormat = $(this).val() || 'auto';
     preferredAudioFormat = selectedFormat;
-    $(".audio-format-select").val(selectedFormat);
+    normalizePreferredAudioFormat();
+    $(".audio-format-select").val(preferredAudioFormat);
     console.log("Audio format preference:", selectedFormat);
     if (Stream) {
         shouldReconnect = true;

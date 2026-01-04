@@ -53,6 +53,19 @@ router.get('/', (req, res) => {
             });
         });
     } else {
+        const streamSettingsPath = path.join(__dirname, 'stream', 'settings.json');
+        let audioFallbackFormats = { mp3: true, wav: true };
+        try {
+            const streamSettingsRaw = fs.readFileSync(streamSettingsPath, 'utf8');
+            const streamSettings = JSON.parse(streamSettingsRaw);
+            audioFallbackFormats = {
+                mp3: !!streamSettings.FallbackUseMp3,
+                wav: !!streamSettings.FallbackUseWav
+            };
+        } catch (err) {
+            logWarn(`Failed to read stream settings for audio formats: ${err.message}`);
+        }
+
         res.render('index', {
             isAdminAuthenticated: req.session.isAdminAuthenticated,
             isTuneAuthenticated: req.session.isTuneAuthenticated,
@@ -72,7 +85,8 @@ router.get('/', (req, res) => {
             plugins: serverConfig.plugins,
             fmlist_integration: serverConfig.extras.fmlistIntegration,
             fmlist_adminOnly: serverConfig.extras.fmlistAdminOnly,
-            bwSwitch: serverConfig.bwSwitch
+            bwSwitch: serverConfig.bwSwitch,
+            audioFallbackFormats
         });
     }
 });
