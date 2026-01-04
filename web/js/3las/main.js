@@ -1,15 +1,32 @@
 let Stream;
 let shouldReconnect = true;
 let newVolumeGlobal = 1;
+let preferredAudioFormat = 'auto';
 
 function Init(_ev) {
     $(".playbutton").off('click').on('click', OnPlayButtonClick);  // Ensure only one event handler is attached
     $("#volumeSlider").off("input").on("input", updateVolume);  // Ensure only one event handler is attached
+    $(".audio-format-select").off("change").on("change", onAudioFormatChange);
+}
+
+function applyAudioFormatPreference(settings) {
+    if (preferredAudioFormat === 'wav') {
+        settings.Fallback.Formats = [
+            { "Mime": "audio/wave", "Name": "wav" },
+            { "Mime": "audio/mpeg", "Name": "mp3" }
+        ];
+    } else if (preferredAudioFormat === 'mp3') {
+        settings.Fallback.Formats = [
+            { "Mime": "audio/mpeg", "Name": "mp3" },
+            { "Mime": "audio/wave", "Name": "wav" }
+        ];
+    }
 }
 
 function createStream() {
     try {
         const settings = new _3LAS_Settings();
+        applyAudioFormatPreference(settings);
         Stream = new _3LAS(null, settings);
         Stream.Volume = $('#volumeSlider').val();
         Stream.ConnectivityCallback = OnConnectivityCallback;
@@ -75,5 +92,17 @@ function updateVolume() {
     }
 }
 
-$(document).ready(Init);
+function onAudioFormatChange() {
+    const selectedFormat = $(this).val() || 'auto';
+    preferredAudioFormat = selectedFormat;
+    $(".audio-format-select").val(selectedFormat);
+    console.log("Audio format preference:", selectedFormat);
+    if (Stream) {
+        shouldReconnect = true;
+        destroyStream();
+        createStream();
+        Stream.Start();
+    }
+}
 
+$(document).ready(Init);

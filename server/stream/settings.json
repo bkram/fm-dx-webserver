@@ -1,7 +1,7 @@
 {
     "RtcConfig" : null,
 	"FallbackFFmpegPath": "ffmpeg.exe",
-    "FallbackUseMp3": false,
+    "FallbackUseMp3": true,
     "FallbackUseWav": true,
     "FallbackMp3Bitrate": 192,
     "FallbackWavSampleRate": 48000,
