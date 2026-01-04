@@ -5,8 +5,8 @@
 var Fallback_Settings = /** @class */ (function () {
     function Fallback_Settings() {
         this.Formats = [
-            { "Mime": "audio/mpeg", "Name": "mp3" },
-            { "Mime": "audio/wave", "Name": "wav" }
+            { "Mime": "audio/wave", "Name": "wav" },
+            { "Mime": "audio/mpeg", "Name": "mp3" }
         ];
         this.MaxVolume = 1.0;
         this.AutoCorrectSpeed = false;

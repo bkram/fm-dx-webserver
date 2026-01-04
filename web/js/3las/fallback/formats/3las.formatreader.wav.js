@@ -188,6 +188,7 @@ var AudioFormatReader_WAV = /** @class */ (function (_super) {
     };
     // Is called if the decoding of the samples succeeded
     AudioFormatReader_WAV.prototype.OnDecodeSuccess = function (decodedData, id) {
+        window.startTimeConnectionWatchdog = performance.now();
         // Calculate the length of the parts
         var pickSize = this.BatchDuration * decodedData.sampleRate;
         this.SampleBudget += (pickSize - Math.ceil(pickSize));
@@ -210,8 +211,13 @@ var AudioFormatReader_WAV = /** @class */ (function (_super) {
         // Create a buffer that can hold a single part
         var audioBuffer = this.Audio.createBuffer(decodedData.numberOfChannels, pickSize, decodedData.sampleRate);
         // Fill buffer with the last part of the decoded frame
-        for (var i = 0; i < decodedData.numberOfChannels; i++)
-            audioBuffer.getChannelData(i).set(decodedData.getChannelData(i).slice(pickOffset, -pickOffset));
+        for (var i = 0; i < decodedData.numberOfChannels; i++) {
+            var channelData = decodedData.getChannelData(i);
+            var end = pickOffset + pickSize;
+            if (end > channelData.length)
+                end = channelData.length;
+            audioBuffer.getChannelData(i).set(channelData.slice(pickOffset, end));
+        }
         this.OnDataReady(id, audioBuffer);
     };
     // Is called in case the decoding of the window fails
