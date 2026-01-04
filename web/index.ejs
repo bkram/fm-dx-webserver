@@ -249,6 +249,11 @@
                 <span class="panel-100-real m-0" style="height: 48px;">
                   <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" aria-label="Volume slider">
                 </span>
+                <select id="audioFormatSelect" class="audio-format-select" aria-label="Audio format" style="height: 48px; margin-left: 15px; border-radius: 15px; padding: 0 10px;">
+                  <option value="auto">Auto</option>
+                  <option value="wav">WAV</option>
+                  <option value="mp3">MP3</option>
+                </select>
                 <% if (bwSwitch) { %>
                   <%- include('_bwSwitch', { device: device, id: 'data-bw', cssClass: 'panel-50 dropdown-up m-0 w-150 m-left-15', cssClassOptions: 'open-top' }) %>
                 <% } %>                
@@ -368,6 +373,14 @@
                 <% if (device == 'xdr') { %><button class="data-eq tooltip p-10 m-right-5" aria-label="RF+ Filter" data-tooltip="<strong>The RF+ filter increases gain by 5dB</strong>"><span class="text-bold">RF+</span></button><% } %>
                 <% if (device == 'tef') { %><button class="data-ims tooltip p-10 m-left-5" style="height: 48px;" aria-label="iMS + Filter" data-tooltip="<strong>The iMS filter reduces multipath audio artifacts.</strong><br><br>It's recommended to leave it on most of the time."><span class="text-bold">iMS</span></button><% } %>
                 <% if (device == 'xdr') { %><button class="data-ims tooltip p-10 m-left-5" aria-label="IF+ Filter" data-tooltip="<strong>The IF+ filter increases gain by 6dB</strong>"><span class="text-bold">IF+</span></button><% } %>
+            </div>
+            <p class="flex-phone flex-center">Audio</p>
+            <div class="flex-container flex-phone flex-center">
+              <select id="audioFormatSelectPhone" class="audio-format-select" aria-label="Audio format" style="height: 48px; width: 100%; border-radius: 15px; padding: 0 10px;">
+                <option value="auto">Auto</option>
+                <option value="wav">WAV</option>
+                <option value="mp3">MP3</option>
+              </select>
             </div>
 
             <% if (fmlist_integration == true && (fmlist_adminOnly == false || isTuneAuthenticated)) { %>
