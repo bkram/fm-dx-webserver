@@ -16,6 +16,23 @@ const dataHandler = require('./datahandler');
 const fmdxList = require('./fmdx_list');
 const { allPluginConfigs } = require('./plugins');
 
+function readAudioCodecFormats() {
+    const streamSettingsPath = path.join(__dirname, 'stream', 'settings.json');
+    let audioCodecFormats = { mp3: true, aac: false, opus: false };
+    try {
+        const streamSettingsRaw = fs.readFileSync(streamSettingsPath, 'utf8');
+        const streamSettings = JSON.parse(streamSettingsRaw);
+        audioCodecFormats = {
+            mp3: !!streamSettings.AudioCodecUseMp3,
+            aac: !!streamSettings.AudioCodecUseAac,
+            opus: !!streamSettings.AudioCodecUseOpus
+        };
+    } catch (err) {
+        logWarn(`Failed to read stream settings for audio codecs: ${err.message}`);
+    }
+    return audioCodecFormats;
+}
+
 // Endpoints
 router.get('/', (req, res) => {
     let requestIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -53,18 +70,7 @@ router.get('/', (req, res) => {
             });
         });
     } else {
-        const streamSettingsPath = path.join(__dirname, 'stream', 'settings.json');
-        let audioFallbackFormats = { mp3: true, wav: true };
-        try {
-            const streamSettingsRaw = fs.readFileSync(streamSettingsPath, 'utf8');
-            const streamSettings = JSON.parse(streamSettingsRaw);
-            audioFallbackFormats = {
-                mp3: !!streamSettings.FallbackUseMp3,
-                wav: !!streamSettings.FallbackUseWav
-            };
-        } catch (err) {
-            logWarn(`Failed to read stream settings for audio formats: ${err.message}`);
-        }
+        const audioCodecFormats = readAudioCodecFormats();
 
         res.render('index', {
             isAdminAuthenticated: req.session.isAdminAuthenticated,
@@ -86,9 +92,62 @@ router.get('/', (req, res) => {
             fmlist_integration: serverConfig.extras.fmlistIntegration,
             fmlist_adminOnly: serverConfig.extras.fmlistAdminOnly,
             bwSwitch: serverConfig.bwSwitch,
-            audioFallbackFormats
+            audioCodecFormats
         });
     }
+});
+
+router.get('/audio/stream', (req, res) => {
+    const codec = (req.query.codec || req.query.format || 'mp3').toString().toLowerCase();
+    const audioCodecFormats = readAudioCodecFormats();
+    if (!audioCodecFormats[codec]) {
+        res.status(400).send('codec disabled');
+        return;
+    }
+    const audioServer = require('./stream/audio.server');
+    res.status(200);
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    if (res.flushHeaders) res.flushHeaders();
+
+    const keepAlive = setInterval(() => {
+        res.write(':keepalive\n\n');
+    }, 15000);
+
+    const sseClient = {
+        SendBinary(buffer) {
+            const payload = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
+            res.write(`data: ${payload.toString('base64')}\n\n`);
+        },
+        SendText(_) {
+        },
+        Destroy() {
+            clearInterval(keepAlive);
+            try {
+                res.end();
+            } catch (_a) {
+            }
+        }
+    };
+
+    audioServer.waitUntilReady.then(() => {
+        if (!audioServer.Server) {
+            res.write('event: error\ndata: server not ready\n\n');
+            return;
+        }
+        audioServer.Server.SetAudioCodec(sseClient, codec);
+    }).catch((err) => {
+        res.write(`event: error\ndata: ${err.message}\n\n`);
+    });
+
+    req.on('close', () => {
+        clearInterval(keepAlive);
+        if (audioServer?.Server) {
+            audioServer.Server.DestroyClient(sseClient);
+        }
+    });
 });
 
 router.get('/403', (req, res) => {
