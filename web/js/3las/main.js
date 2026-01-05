@@ -1,13 +1,14 @@
 let Stream;
 let shouldReconnect = true;
 let newVolumeGlobal = 1;
-let preferredAudioFormat = 'auto';
+let preferredAudioFormat = 'mp3';
 const audioFormatSupport = window.audioFallbackFormats || { mp3: true, wav: true };
 
 function Init(_ev) {
     $(".playbutton").off('click').on('click', OnPlayButtonClick);  // Ensure only one event handler is attached
     $("#volumeSlider").off("input").on("input", updateVolume);  // Ensure only one event handler is attached
-    $(".audio-format-select").off("change").on("change", onAudioFormatChange);
+    $(document).off('click', '.audio-format-dropdown .option', onAudioFormatOptionClick)
+        .on('click', '.audio-format-dropdown .option', onAudioFormatOptionClick);
     syncAudioFormatSelects();
 }
 
@@ -21,11 +22,7 @@ function getEnabledFormats() {
 function normalizePreferredAudioFormat() {
     const enabled = getEnabledFormats();
     if (enabled.length === 0) {
-        preferredAudioFormat = 'auto';
-        return;
-    }
-    if (preferredAudioFormat === 'auto') {
-        if (enabled.length === 1) preferredAudioFormat = enabled[0];
+        preferredAudioFormat = 'mp3';
         return;
     }
     if (!enabled.includes(preferredAudioFormat)) {
@@ -33,31 +30,39 @@ function normalizePreferredAudioFormat() {
     }
 }
 
-function ensureOption($select, value, label, enabled) {
-    const existing = $select.find(`option[value="${value}"]`);
+function ensureOption($dropdown, value, enabled) {
+    const existing = $dropdown.find(`.option[data-value="${value}"]`);
     if (enabled) {
         if (existing.length === 0) {
-            $select.append(`<option value="${value}">${label}</option>`);
+            const label = getAudioFormatLabel(value);
+            $dropdown.find('ul.options').append(`<li class="option" tabindex="0" data-value="${value}">${label}</li>`);
         }
     } else {
         existing.remove();
     }
 }
 
+function getAudioFormatLabel(format) {
+    switch (format) {
+        case 'wav':
+            return 'WAV';
+        case 'mp3':
+        default:
+            return 'MP3';
+    }
+}
+
 function syncAudioFormatSelects() {
     const enabled = getEnabledFormats();
-    $(".audio-format-select").each(function () {
-        const $select = $(this);
-        ensureOption($select, 'wav', 'WAV', audioFormatSupport.wav);
-        ensureOption($select, 'mp3', 'MP3', audioFormatSupport.mp3);
-        if (enabled.length === 0) {
-            $select.prop('disabled', true);
-        } else {
-            $select.prop('disabled', false);
-        }
+    $(".audio-format-dropdown").each(function () {
+        const $dropdown = $(this);
+        ensureOption($dropdown, 'wav', audioFormatSupport.wav);
+        ensureOption($dropdown, 'mp3', audioFormatSupport.mp3);
     });
     normalizePreferredAudioFormat();
-    $(".audio-format-select").val(preferredAudioFormat);
+    $(".audio-format-dropdown input")
+        .val(getAudioFormatLabel(preferredAudioFormat))
+        .attr('data-value', preferredAudioFormat);
 }
 
 function applyAudioFormatPreference(settings) {
@@ -143,12 +148,14 @@ function updateVolume() {
     }
 }
 
-function onAudioFormatChange() {
-    const selectedFormat = $(this).val() || 'auto';
+function onAudioFormatOptionClick(event) {
+    const selectedFormat = $(event.currentTarget).data('value') || 'auto';
     preferredAudioFormat = selectedFormat;
     normalizePreferredAudioFormat();
-    $(".audio-format-select").val(preferredAudioFormat);
-    console.log("Audio format preference:", selectedFormat);
+    $(".audio-format-dropdown input")
+        .val(getAudioFormatLabel(preferredAudioFormat))
+        .attr('data-value', preferredAudioFormat);
+    console.log("Audio format preference:", preferredAudioFormat);
     if (Stream) {
         shouldReconnect = true;
         destroyStream();
