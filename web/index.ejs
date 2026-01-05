@@ -252,11 +252,13 @@
                 <span class="panel-100-real m-0" style="height: 48px;">
                   <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" aria-label="Volume slider">
                 </span>
-                <select id="audioFormatSelect" class="audio-format-select" aria-label="Audio format" style="height: 48px; margin-left: 15px; border-radius: 15px; padding: 0 10px;">
-                  <option value="auto">Auto</option>
-                  <option value="wav">WAV</option>
-                  <option value="mp3">MP3</option>
-                </select>
+                <div class="dropdown audio-format-dropdown dropdown-up m-0 w-150 m-left-15" id="audio-format">
+                  <input type="text" placeholder="MP3" readonly tabindex="0">
+                  <ul class="options open-top" tabindex="-1">
+                    <li class="option" tabindex="0" data-value="mp3">MP3</li>
+                    <li class="option" tabindex="0" data-value="wav">WAV</li>
+                  </ul>
+                </div>
                 <% if (bwSwitch) { %>
                   <%- include('_bwSwitch', { device: device, id: 'data-bw', cssClass: 'panel-50 dropdown-up m-0 w-150 m-left-15', cssClassOptions: 'open-top' }) %>
                 <% } %>                
@@ -379,11 +381,13 @@
             </div>
             <p class="flex-phone flex-center">Audio</p>
             <div class="flex-container flex-phone flex-center">
-              <select id="audioFormatSelectPhone" class="audio-format-select" aria-label="Audio format" style="height: 48px; width: 100%; border-radius: 15px; padding: 0 10px;">
-                <option value="auto">Auto</option>
-                <option value="wav">WAV</option>
-                <option value="mp3">MP3</option>
-              </select>
+              <div class="dropdown audio-format-dropdown panel-100-real" id="audio-format-phone" style="max-height: 48px; width: 100%;">
+                <input type="text" placeholder="MP3" readonly tabindex="0">
+                <ul class="options open-top" tabindex="-1">
+                  <li class="option" tabindex="0" data-value="mp3">MP3</li>
+                  <li class="option" tabindex="0" data-value="wav">WAV</li>
+                </ul>
+              </div>
             </div>
 
             <% if (fmlist_integration == true && (fmlist_adminOnly == false || isTuneAuthenticated)) { %>
