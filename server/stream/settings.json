@@ -1,5 +1,4 @@
 {
     "AudioCodecUseMp3": true,
-    "AudioCodecUseAac": true,
     "AudioCodecUseOpus": true
 }
