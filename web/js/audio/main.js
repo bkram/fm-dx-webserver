@@ -1,9 +1,8 @@
 var audioPlayer = null;
-var preferredAudioCodec = 'mp3';
-var audioCodecSupport = window.audioCodecFormats || { mp3: true, aac: false, opus: false };
+var preferredAudioCodec = 'opus';
+var audioCodecSupport = window.audioCodecFormats || { mp3: true, opus: false };
 var codecMime = {
     mp3: 'audio/mpeg',
-    aac: 'audio/aac',
     opus: 'audio/webm; codecs=opus'
 };
 
@@ -28,8 +27,6 @@ function getEnabledFormats() {
 
 function getAudioCodecLabel(codec) {
     switch (codec) {
-        case 'aac':
-            return 'AAC';
         case 'opus':
             return 'OPUS';
         case 'mp3':
@@ -67,7 +64,6 @@ function syncAudioCodecDropdowns() {
     $(".audio-codec-dropdown").each(function () {
         var $dropdown = $(this);
         ensureOption($dropdown, 'mp3', audioCodecSupport.mp3 && isMseSupported('mp3'));
-        ensureOption($dropdown, 'aac', audioCodecSupport.aac && isMseSupported('aac'));
         ensureOption($dropdown, 'opus', audioCodecSupport.opus && isMseSupported('opus'));
     });
     normalizePreferredAudioCodec();

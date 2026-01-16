@@ -18,13 +18,12 @@ const { allPluginConfigs } = require('./plugins');
 
 function readAudioCodecFormats() {
     const streamSettingsPath = path.join(__dirname, 'stream', 'settings.json');
-    let audioCodecFormats = { mp3: true, aac: false, opus: false };
+    let audioCodecFormats = { mp3: true, opus: false };
     try {
         const streamSettingsRaw = fs.readFileSync(streamSettingsPath, 'utf8');
         const streamSettings = JSON.parse(streamSettingsRaw);
         audioCodecFormats = {
             mp3: !!streamSettings.AudioCodecUseMp3,
-            aac: !!streamSettings.AudioCodecUseAac,
             opus: !!streamSettings.AudioCodecUseOpus
         };
     } catch (err) {
@@ -98,11 +97,15 @@ router.get('/', (req, res) => {
 });
 
 router.get('/audio/stream', (req, res) => {
-    const codec = (req.query.codec || req.query.format || 'mp3').toString().toLowerCase();
+    let codec = (req.query.codec || req.query.format || 'opus').toString().toLowerCase();
     const audioCodecFormats = readAudioCodecFormats();
     if (!audioCodecFormats[codec]) {
-        res.status(400).send('codec disabled');
-        return;
+        if (codec === 'opus' && audioCodecFormats.mp3) {
+            codec = 'mp3';
+        } else {
+            res.status(400).send('codec disabled');
+            return;
+        }
     }
     const audioServer = require('./stream/audio.server');
     res.status(200);

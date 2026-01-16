@@ -34,15 +34,11 @@ class StreamServer {
     this.Clients = new Set();
     this.AudioCodecClients = {
       mp3: new Set(),
-      aac: new Set(),
       opus: new Set()
     };
     this.AudioCodecProvider = {};
     if (Settings.AudioCodecUseMp3) {
       this.AudioCodecProvider.mp3 = AudioCodecProviderBase.Create(this, "mp3");
-    }
-    if (Settings.AudioCodecUseAac) {
-      this.AudioCodecProvider.aac = AudioCodecProviderBase.Create(this, "aac");
     }
     if (Settings.AudioCodecUseOpus) {
       this.AudioCodecProvider.opus = AudioCodecProviderBase.Create(this, "opus");
@@ -108,9 +104,6 @@ class AudioCodecProviderBase {
     if (format === "mp3") {
       return new AudioCodecProviderMp3(server);
     }
-    if (format === "aac") {
-      return new AudioCodecProviderAac(server);
-    }
     if (format === "opus") {
       return new AudioCodecProviderOpus(server);
     }
@@ -142,28 +135,6 @@ class AudioCodecProviderMp3 extends AudioCodecProviderBase {
   }
 }
 
-
-class AudioCodecProviderAac extends AudioCodecProviderBase {
-  GetFFmpegArguments() {
-    return [
-      "-fflags", "+nobuffer+flush_packets", "-flags", "low_delay", "-rtbufsize", "32", "-probesize", "32",
-      "-f", "s16le",
-      "-ar", Number(this.Server.SampleRate.toString()) + Number(serverConfig.audio.samplerateOffset),
-      "-ac", this.Server.Channels.toString(),
-      "-i", "pipe:0",
-      "-c:a", "aac",
-      "-b:a", serverConfig.audio.audioBitrate,
-      "-f", "adts",
-      "-fflags", "+nobuffer", "-flush_packets", "1",
-      "pipe:1"
-    ];
-  }
-  OnData(chunk) {
-    this.Server.BroadcastBinary("aac", chunk);
-  }
-  PrimeClient(_) {
-  }
-}
 
 class AudioCodecProviderOpus extends AudioCodecProviderBase {
   constructor(server) {
