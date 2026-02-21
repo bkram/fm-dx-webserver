@@ -16,7 +16,7 @@ const path = require('path');
 const net = require('net');
 const client = new net.Socket();
 const { SerialPort } = require('serialport');
-const audioServer = require('./stream/3las.server');
+const audioHandlerWebSocket = require('./audio/audio-websocket');
 const tunnel = require('./tunnel');
 const { createChatServer } = require('./chat');
 
@@ -645,8 +645,9 @@ function isPortOpen(host, port, timeout = 1000) {
         });
     });
 }
+let audioWebSocket;
 
-// Websocket register for /text, /audio and /chat paths 
+// Websocket register for /text, /audio and /chat paths
 httpServer.on('upgrade', (request, socket, head) => {
   if (request.url === '/text') {
     sessionMiddleware(request, {}, () => {
@@ -655,10 +656,8 @@ httpServer.on('upgrade', (request, socket, head) => {
       });
     });
   } else if (request.url === '/audio') {
-    if (typeof audioServer?.handleAudioUpgrade === 'function') {
-      audioServer.handleAudioUpgrade(request, socket, head, (ws) => {
-        audioServer.Server?.Server?.emit?.('connection', ws, request);
-      });
+    if (audioWebSocket && typeof audioWebSocket.handleUpgrade === 'function') {
+      audioWebSocket.handleUpgrade(request, socket, head);
     } else {
       logWarn('[Audio WebSocket] Audio server not ready — dropping client connection.');
       socket.destroy();
@@ -687,12 +686,12 @@ httpServer.on('upgrade', (request, socket, head) => {
 
         ws.on('message', function incoming(message) {
           // Anti-spam
-          const command = helpers.antispamProtection(message, clientIp, ws, userCommands, lastWarn, userCommandHistory, '5', 'rds');
+          helpers.antispamProtection(message, clientIp, ws, userCommands, lastWarn, userCommandHistory, '5', 'rds');
         });
 
       });
     });
-  } else if (request.url === '/data_plugins') {
+  } else if (request.url === '/plugins' || request.url === '/data_plugins') {
     sessionMiddleware(request, {}, () => {
       pluginsWss.handleUpgrade(request, socket, head, (ws) => {
         pluginsWss.emit('connection', ws, request);
@@ -705,6 +704,13 @@ httpServer.on('upgrade', (request, socket, head) => {
 
 app.use(express.static(path.join(__dirname, '../web'))); // Serve the entire web folder to the user
 fmdxList.update();
+
+// Initialize audioHandlerWebSocket
+audioWebSocket = new audioHandlerWebSocket();
+audioWebSocket.initialize().catch((error) => {
+  logError(`[audioHandlerWebSocket] Failed to initialize WebSocket handler: ${error.message}`);
+  process.exit(1);
+});
 
 helpers.checkIPv6Support((isIPv6Supported) => {
   const ipv4Address = serverConfig.webserver.webserverIp === '0.0.0.0' ? 'localhost' : serverConfig.webserver.webserverIp;
