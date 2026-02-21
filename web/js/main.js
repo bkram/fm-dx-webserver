@@ -31,6 +31,8 @@ const usa_programmes = [
 ];
 
 const rdsMode = localStorage.getItem('rdsMode');
+const isMobileClient = () => /android|iphone|ipod|ipad/i.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 $(document).ready(function () {
     const signalToggle = $("#signal-units-toggle");
@@ -481,7 +483,7 @@ function initCanvas() {
                         frameRate: 30, // default is 30
                         onRefresh: (chart) => {
                             if (!chart?.data?.datasets || parsedData?.sig === undefined) return;
-                            if ((isAndroid || isIOS || isIPadOS) && (document.hidden || !document.hasFocus())) return;
+                            if (isMobileClient() && (document.hidden || !document.hasFocus())) return;
 
                             const sig = parsedData.sig;
                             signalBuffer.push(sig);
@@ -602,11 +604,11 @@ function setRefreshRate(rate) {
 }
 
 window.addEventListener("focus", () => {
-    if (isAndroid || isIOS || isIPadOS) setRefreshRate(75);
+    if (isMobileClient()) setRefreshRate(75);
 });
 
 window.addEventListener("blur", () => {
-    if (isAndroid || isIOS || isIPadOS) setRefreshRate(3000);
+    if (isMobileClient()) setRefreshRate(3000);
 });
 
 let reconnectTimer = null;
