@@ -18,19 +18,10 @@ const fmdxList = require('./fmdx_list');
 const { allPluginConfigs } = require('./plugins');
 
 function readAudioCodecFormats() {
-    const streamSettingsPath = path.join(__dirname, 'stream', 'settings.json');
-    let audioCodecFormats = { mp3: true, opus: false };
-    try {
-        const streamSettingsRaw = fs.readFileSync(streamSettingsPath, 'utf8');
-        const streamSettings = JSON.parse(streamSettingsRaw);
-        audioCodecFormats = {
-            mp3: !!streamSettings.AudioCodecUseMp3,
-            opus: !!streamSettings.AudioCodecUseOpus
-        };
-    } catch (err) {
-        logWarn(`Failed to read stream settings for audio codecs: ${err.message}`);
-    }
-    return audioCodecFormats;
+    return {
+        mp3: !!serverConfig.audio.mp3Enabled,
+        opus: !!serverConfig.audio.opusEnabled
+    };
 }
 
 // Endpoints
@@ -99,7 +90,11 @@ router.get('/', (req, res) => {
             fmlist_integration: serverConfig.extras.fmlistIntegration,
             fmlist_adminOnly: serverConfig.extras.fmlistAdminOnly,
             bwSwitch: serverConfig.bwSwitch,
-            audioCodecFormats
+            audioCodecFormats,
+            audioBitrates: {
+                mp3: serverConfig.audio.mp3Bitrate,
+                opus: serverConfig.audio.opusBitrate
+            }
         });
     }
 });

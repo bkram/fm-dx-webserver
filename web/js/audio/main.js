@@ -9,6 +9,8 @@ var codecMime = {
 function isMseSupported(codec) {
     if (typeof MediaSource === 'undefined')
         return false;
+    if (forceMp3Codec && codec !== 'mp3')
+        return false;
     var mime = codecMime[codec];
     if (!mime)
         return false;
@@ -73,13 +75,17 @@ function syncAudioCodecDropdowns() {
     $(".audio-codec-dropdown").toggle(enabled.length > 1);
 }
 
+function getBitrate(codec) {
+    return (window.audioBitrates && window.audioBitrates[codec]) || '?';
+}
+
 function createPlayer() {
     if (!isMseSupported(preferredAudioCodec)) {
-        console.warn("Selected codec not supported by MSE:", preferredAudioCodec);
+        console.warn("[Audio] Selected codec not supported by MSE:", preferredAudioCodec);
         return;
     }
     var mime = codecMime[preferredAudioCodec];
-    console.log("Audio codec selected:", preferredAudioCodec, "(" + mime + ")");
+    console.log("[Audio] Playing", preferredAudioCodec.toUpperCase(), "@", getBitrate(preferredAudioCodec), "(" + mime + ")");
     audioPlayer = new AudioSsePlayer(preferredAudioCodec, mime, console);
     audioPlayer.Volume = $('#volumeSlider').val();
     audioPlayer.Start();
@@ -122,11 +128,36 @@ function onAudioCodecOptionClick(event) {
     $(".audio-codec-dropdown input")
         .val(getAudioCodecLabel(preferredAudioCodec))
         .attr('data-value', preferredAudioCodec);
-    console.log("Audio codec changed:", preferredAudioCodec);
+    console.log("[Audio] Codec changed to", preferredAudioCodec.toUpperCase(), "@", getBitrate(preferredAudioCodec));
     if (audioPlayer) {
         destroyPlayer();
         createPlayer();
         $('.playbutton').find('.fa-solid').removeClass('fa-play').addClass('fa-stop');
+    }
+}
+
+function logAudioCapabilities() {
+    var enabled = getEnabledFormats();
+    if (forceMp3Codec) {
+        var reason = isIOS ? 'iOS' : isIPadOS ? 'iPadOS' : isSafari ? 'Safari' : 'WebKit';
+        console.warn("[Audio] " + reason + " detected — forcing MP3 codec (Opus playback disabled for this browser)");
+    }
+    console.log("[Audio] Server-enabled codecs:", audioCodecSupport,
+        "| Browser-MSE-supported:", { mp3: isMseSupported('mp3'), opus: isMseSupported('opus') },
+        "| Effective:", enabled,
+        "| Bitrates:", window.audioBitrates || {},
+        "| Default:", preferredAudioCodec,
+        "| ForceMP3:", forceMp3Codec);
+    if (enabled.length === 0) {
+        if (forceMp3Codec && !audioCodecSupport.mp3) {
+            console.error("[Audio] No audio available — this browser requires MP3 but the server has MP3 disabled. Enable MP3 in admin setup and restart the server.");
+        } else if (forceMp3Codec && !isMseSupported('mp3')) {
+            console.error("[Audio] No audio available — this browser cannot play MP3 via MSE.");
+        } else if (!audioCodecSupport.mp3 && !audioCodecSupport.opus) {
+            console.error("[Audio] No audio available — both MP3 and Opus are disabled on the server. Enable at least one in admin setup and restart.");
+        } else {
+            console.error("[Audio] No audio available — none of the server-enabled codecs are supported by this browser.");
+        }
     }
 }
 
@@ -136,6 +167,7 @@ function initAudioControls() {
     $(document).off('click', '.audio-codec-dropdown .option', onAudioCodecOptionClick)
         .on('click', '.audio-codec-dropdown .option', onAudioCodecOptionClick);
     syncAudioCodecDropdowns();
+    logAudioCapabilities();
 }
 
 $(document).ready(initAudioControls);
